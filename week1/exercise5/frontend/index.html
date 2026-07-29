@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EASY-CHATGPT</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <h1>EASY-CHATGPT</h1>
+      <span id="model-badge" class="badge" title="Model the backend is configured with">
+        connecting…
+      </span>
+      <label class="toggle">
+        <input type="checkbox" id="streaming" checked />
+        <span>Streaming</span>
+      </label>
+      <button id="reset" type="button" class="ghost">New chat</button>
+      <button id="toggle-context" type="button" class="ghost" aria-expanded="true">
+        Context
+      </button>
+    </header>
+
+    <main>
+      <section class="chat" aria-label="Conversation">
+        <div id="messages" class="messages" role="log" aria-live="polite"></div>
+
+        <div id="error" class="error" hidden></div>
+
+        <form id="composer" class="composer">
+          <div id="attachment" class="attachment" hidden>
+            <img id="attachment-preview" alt="Attached image preview" />
+            <span id="attachment-name"></span>
+            <button type="button" id="attachment-remove" class="ghost">Remove</button>
+          </div>
+          <div class="composer-row">
+            <label
+              id="attach-label"
+              class="attach"
+              title="Attach an image"
+              aria-label="Attach an image"
+            >
+              <input type="file" id="file" accept="image/*" hidden />
+              <span aria-hidden="true">＋</span>
+            </label>
+            <textarea
+              id="input"
+              rows="1"
+              placeholder="Ask something…  (Enter to send, Shift+Enter for a newline)"
+              autocomplete="off"
+            ></textarea>
+            <button type="submit" id="send">Send</button>
+          </div>
+        </form>
+      </section>
+
+      <aside id="context" class="context" aria-label="Context view">
+        <h2>Context sent to the model</h2>
+        <p class="hint">
+          The exact payload the backend forwarded upstream on the last turn —
+          system prompt included.
+        </p>
+        <ol id="context-messages" class="context-messages"></ol>
+
+        <h2>Tokens</h2>
+        <table class="tokens">
+          <tbody>
+            <tr>
+              <th scope="row">Prompt</th>
+              <td id="tok-prompt">—</td>
+            </tr>
+            <tr>
+              <th scope="row">Completion</th>
+              <td id="tok-completion">—</td>
+            </tr>
+            <tr>
+              <th scope="row">Last turn total</th>
+              <td id="tok-total">—</td>
+            </tr>
+            <tr class="session">
+              <th scope="row">Session total</th>
+              <td id="tok-session">0</td>
+            </tr>
+          </tbody>
+        </table>
+        <p id="tok-note" class="hint" hidden>
+          The provider did not report usage, so these counts are estimated
+          locally (~4 characters per token).
+        </p>
+      </aside>
+    </main>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
