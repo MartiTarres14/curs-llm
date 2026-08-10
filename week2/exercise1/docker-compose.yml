@@ -1,0 +1,22 @@
+services:
+  easy-assistant:
+    build: .
+    # APP_PORT is read from .env by compose itself; 8000 is fixed inside the
+    # container. Change the port you visit by editing .env, not this file.
+    ports:
+      - "${APP_PORT:-6662}:8000"
+    # Passes LLM_BASE_URL, LLM_API_KEY, LLM_MODEL, ... into the container.
+    env_file:
+      - .env
+    # The assistants and their documents must outlive the container.
+    volumes:
+      - ./data:/app/data
+    environment:
+      # Overrides whatever DATA_DIR says in .env: inside the container the
+      # store always lives at the mount point.
+      DATA_DIR: /app/data
+    # Lets the container reach an LLM running on the host (e.g. Ollama at
+    # http://host.docker.internal:11434/v1). Required on Linux, harmless elsewhere.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped

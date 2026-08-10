@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>EASY-ASSISTANT</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <h1>EASY-ASSISTANT</h1>
+      <span id="model-badge" class="badge" title="Model the backend is configured with">
+        connecting…
+      </span>
+      <label class="toggle">
+        <input type="checkbox" id="streaming" checked />
+        <span>Streaming</span>
+      </label>
+      <button id="reset" type="button" class="ghost">New chat</button>
+      <button id="toggle-context" type="button" class="ghost" aria-expanded="true">
+        Context
+      </button>
+    </header>
+
+    <main>
+      <!-- ------------------------------------------------ assistants rail -->
+      <aside class="rail" aria-label="Assistants">
+        <div class="rail-head">
+          <h2>Assistants</h2>
+          <button id="new-assistant" type="button" class="ghost">＋ New</button>
+        </div>
+        <ul id="assistant-list" class="assistant-list"></ul>
+        <p id="rail-empty" class="hint" hidden>
+          No assistants yet. Create one, give it a document, and ask it something.
+        </p>
+      </aside>
+
+      <!-- ------------------------------------------------------------ chat -->
+      <section class="chat" aria-label="Conversation">
+        <div id="assistant-bar" class="assistant-bar" hidden>
+          <div class="assistant-bar-main">
+            <strong id="assistant-name"></strong>
+            <span id="doc-chip" class="chip" hidden></span>
+            <span id="doc-missing" class="chip warn" hidden>no document</span>
+          </div>
+          <div class="assistant-bar-actions">
+            <label class="ghost as-button" title="Upload a plain-text document">
+              <input type="file" id="doc-file" accept=".txt,.md,.markdown,.csv,text/*" hidden />
+              Upload document
+            </label>
+            <button id="doc-remove" type="button" class="ghost" hidden>Remove doc</button>
+            <button id="edit-assistant" type="button" class="ghost">Edit</button>
+            <button id="delete-assistant" type="button" class="ghost danger">Delete</button>
+          </div>
+        </div>
+
+        <div id="messages" class="messages" role="log" aria-live="polite"></div>
+
+        <div id="empty-state" class="empty-state">
+          <p>Pick an assistant on the left, or create one.</p>
+          <p class="hint">
+            An assistant is a name, a system prompt, and a prompt template with
+            two gaps: <code>{context}</code> and <code>{user_input}</code>.
+          </p>
+        </div>
+
+        <div id="error" class="error" hidden></div>
+
+        <form id="composer" class="composer">
+          <div class="composer-row">
+            <textarea
+              id="input"
+              rows="1"
+              placeholder="Ask something about the document…  (Enter to send, Shift+Enter for a newline)"
+              autocomplete="off"
+            ></textarea>
+            <button type="submit" id="send">Send</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- -------------------------------------------------- context panel -->
+      <aside id="context" class="context" aria-label="Context view">
+        <h2>Filled prompt</h2>
+        <p class="hint">
+          The template with <code>{context}</code> replaced by the whole
+          document and <code>{user_input}</code> by your question. This is the
+          user message that went upstream on the last turn.
+        </p>
+        <pre id="filled-prompt" class="filled">—</pre>
+
+        <h2>Full payload</h2>
+        <p class="hint">Every message the backend sent, system prompt included.</p>
+        <ol id="context-messages" class="context-messages"></ol>
+
+        <h2>Tokens</h2>
+        <table class="tokens">
+          <tbody>
+            <tr>
+              <th scope="row">Prompt</th>
+              <td id="tok-prompt">—</td>
+            </tr>
+            <tr>
+              <th scope="row">Completion</th>
+              <td id="tok-completion">—</td>
+            </tr>
+            <tr>
+              <th scope="row">Last turn total</th>
+              <td id="tok-total">—</td>
+            </tr>
+            <tr class="session">
+              <th scope="row">Session total</th>
+              <td id="tok-session">0</td>
+            </tr>
+          </tbody>
+        </table>
+        <p id="tok-note" class="hint" hidden>
+          The provider did not report usage, so these counts are estimated
+          locally (~4 characters per token).
+        </p>
+        <p class="hint">
+          Watch <em>Prompt</em>: it does not shrink when your question gets
+          shorter, because the whole document is sent again every turn.
+        </p>
+      </aside>
+    </main>
+
+    <!-- ------------------------------------------------ assistant editor -->
+    <dialog id="editor">
+      <form id="editor-form" method="dialog">
+        <h2 id="editor-title">New assistant</h2>
+
+        <label for="f-name">Name</label>
+        <input id="f-name" type="text" maxlength="80" required />
+
+        <label for="f-system">System prompt</label>
+        <p class="hint">How the model should behave — its role, tone and rules.</p>
+        <textarea id="f-system" rows="4" required></textarea>
+
+        <label for="f-template">Prompt template</label>
+        <p class="hint">
+          Must contain both <code>{context}</code> and
+          <code>{user_input}</code>. The backend fills them in on every turn.
+        </p>
+        <textarea id="f-template" rows="12" required spellcheck="false"></textarea>
+
+        <div id="editor-error" class="error" hidden></div>
+
+        <div class="editor-actions">
+          <button type="button" id="editor-cancel" class="ghost">Cancel</button>
+          <button type="submit" id="editor-save">Save</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
