@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>W2-Ex1 — EASY-ASSISTANT</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="who">
+      <span class="name">__FULL_NAME__</span>
+      <span class="meta">
+        Worked alone<br />
+        <a href="__REPO_URL__">__REPO_URL__</a>
+      </span>
+    </div>
+
+    <h1>W2-Ex1 — EASY-ASSISTANT</h1>
+    <p class="lede">
+      An assistant is a name, a system prompt and a prompt template with two
+      gaps. Every turn the backend puts the whole uploaded document into
+      <code>{context}</code> and my message into <code>{user_input}</code>, and
+      sends that to a local <code>qwen2.5:3b</code> through Ollama. Nothing is
+      retrained: the model answers from the file because the file is in front
+      of it.
+    </p>
+
+    <h2>The assistant I built — “Tortuga Support”</h2>
+    <p>
+      Its document is <code>samples/tortuga-robotics.txt</code> (3,193
+      characters), a fact sheet for a company that does not exist — I invented
+      it so that nothing in it could be in the model's training data, and a
+      correct answer could only have come from the context.
+    </p>
+
+    <div class="prompts">
+      <div>
+        <h3>System prompt</h3>
+        <pre>You are the support assistant for Tortuga
+Robotics. Answer strictly from the fact sheet
+you are given. Be brief and factual.</pre>
+      </div>
+      <div>
+        <h3>Prompt template</h3>
+        <pre>Use only the information in the context below
+to answer the question. If the answer is not
+in the context, say that you do not know.
+
+Context:
+----
+<span class="slot">{context}</span>
+----
+
+Question: <span class="slot">{user_input}</span></pre>
+      </div>
+    </div>
+
+    <h2>It answers from the document — and refuses outside it</h2>
+    <div class="shots">
+      <figure>
+        __SHOT_CORRECT__
+        <figcaption>
+          <strong>Answering correctly.</strong> “How much does the TR-40 cost
+          and how much can it carry?” → <em>“The TR-40 costs 17,900 euros and
+          can carry up to 60 kg.”</em> Both numbers are in the fact sheet and
+          nowhere else. The right-hand panel shows the filled prompt that was
+          actually sent — the template with the whole fact sheet pasted into
+          <code>{context}</code>.
+        </figcaption>
+      </figure>
+      <figure>
+        __SHOT_REFUSAL__
+        <figcaption>
+          <strong>Failing usefully.</strong> “Who is the president of France?” →
+          <em>“I do not know.”</em> A model this size certainly has an opinion
+          about France, so the refusal proves the answer is coming from my
+          document and not from training — which is exactly the property that
+          makes a RAG assistant trustworthy.
+        </figcaption>
+      </figure>
+    </div>
+
+    <h2>The token count is the problem</h2>
+    <div class="tokenrow">
+    <table>
+      <thead>
+        <tr>
+          <th>Question sent</th>
+          <th>Chars</th>
+          <th>prompt_tokens</th>
+          <th>completion</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>“How much does the TR-40 cost and how much can it carry?”</td>
+          <td class="n">54</td>
+          <td class="n">968</td>
+          <td class="n">25</td>
+        </tr>
+        <tr>
+          <td>“Who is the president of France?”</td>
+          <td class="n">31</td>
+          <td class="n">959</td>
+          <td class="n">6</td>
+        </tr>
+        <tr class="punch">
+          <td>“And its top speed?” — asked as a follow-up</td>
+          <td class="n">18</td>
+          <td class="n">1,007</td>
+          <td class="n">21</td>
+        </tr>
+      </tbody>
+    </table>
+      <figure class="tokenshot">
+        __SHOT_TOKENS__
+        <figcaption>The Tokens panel after the first question.</figcaption>
+      </figure>
+    </div>
+
+    <p class="note">
+      <strong>The shortest question produced the largest prompt.</strong> My
+      question shrank from 54 characters to 18 and
+      <code>prompt_tokens</code> went <em>up</em>, from 968 to 1,007, because
+      the 3,193-character document is re-sent in full every turn and the earlier
+      turn had joined the history. Roughly 95% of every prompt is the same file
+      over and over. That cannot survive a large document: a 300-page manual
+      would be some 400,000 tokens, which overflows the context window outright
+      — and even where it fits, I pay for the whole file on every message to use
+      the two sentences that answer the question. Next week: retrieve only the
+      relevant pieces.
+    </p>
+
+    <p class="files">
+      Code: <code>week2/exercise1/</code> — the template is filled in
+      <code>backend/assistants.py</code> (<code>fill_template</code>, one regex
+      pass rather than <code>str.format()</code>, so a document full of braces
+      cannot break it); the payload is built in the same file
+      (<code>build_payload</code>); assistants and documents are stored by
+      <code>backend/store.py</code>. Run it with <code>docker compose up</code>.
+    </p>
+  </body>
+</html>

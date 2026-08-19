@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>W2-Ex3 — Collections, ingestion, and the retrieval gate</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      .sims {
+        margin: 3px 0 5px;
+      }
+
+      .sims td,
+      .sims th {
+        padding: 2px 6px;
+      }
+
+      td.num {
+        font-family: "Cascadia Mono", Consolas, ui-monospace, monospace;
+        white-space: nowrap;
+      }
+
+      .win {
+        background: #eaf3ea;
+      }
+
+      .band {
+        margin: 4px 0 5px;
+        padding: 5px 8px;
+        background: #f6f7f9;
+        border: 1px solid #dfe3e8;
+        border-radius: 4px;
+        font-family: "Cascadia Mono", Consolas, ui-monospace, monospace;
+        font-size: 7.8pt;
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="who">
+      <span class="name">__FULL_NAME__</span>
+      <span class="meta">Worked alone</span>
+    </div>
+
+    <h1>W2-Ex3 — Collections, ingestion, and the retrieval gate</h1>
+    <p class="lede">
+      Demos <code>04-collections-explorer</code>, <code>simple-dynamic-rag</code> and
+      <code>05-embeddings-rag-explorer</code>, all on local Ollama —
+      <code>nomic-embed-text</code> for the vectors, <code>qwen3:1.7b</code> for the answers.
+    </p>
+
+    <h2>1 — A collection is a database</h2>
+    <p>
+      <strong>What persisted between the two runs was every chunk together with its embedding and
+      metadata: the second run listed not only the four chunks about electricity tariffs I had just
+      added, but also four chunks about football I had stored in a session hours earlier — it lives in
+      <code>./collections-store</code>, a ChromaDB database on disk (a <code>chroma.sqlite3</code>
+      file for chunks and metadata plus a folder holding the vector index).</strong>
+      Querying with words the chunks never use worked as promised: <em>"quin equip va quedar campió de
+      la competició europea?"</em> surfaced <em>"El psg va guanyar la champions la temporada passada"</em>
+      first at similarity <strong>0.651</strong>, sharing no keyword. Re-inserting an existing chunk is
+      refused: ids are <code>source::chunk_number</code>, so the collection blocks silent duplicates.
+    </p>
+
+    <h2>2 — One document, two chunkings</h2>
+    <p>
+      I ingested a real work document — <code>architecture.md</code>, the architecture guide of a
+      microservice I work on (~26k characters, Spanish, 16 <code>##</code> sections). The
+      <code>chars</code> strategy produced <strong>38 chunks</strong> (800-char window, 100 overlap);
+      <code>sections</code> produced <strong>17 chunks</strong>. Same three questions to both:
+    </p>
+    <table class="sims">
+      <thead>
+        <tr><th>question</th><th>bychars — top hit</th><th>bysections — top hit</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>¿cómo se manejan los errores?</td>
+          <td class="num">0.623 — table fragment about Keycloak credentials</td>
+          <td class="num win">0.675 — section “7. Manejo de errores”</td>
+        </tr>
+        <tr>
+          <td>¿cómo se gestionan las sesiones de BD?</td>
+          <td class="num">0.578 — window ending mid-code-block</td>
+          <td class="num win">0.608 — section “8. Gestión de sesiones”</td>
+        </tr>
+        <tr>
+          <td>¿qué medidas de seguridad hay?</td>
+          <td class="num">0.578 — user-sync table fragment</td>
+          <td class="num win">0.615 — section “1. Estilo arquitectónico”</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      <strong>Sections retrieved better on all three questions</strong> — it lands on the exact
+      section, with higher similarity, because a section chunk carries its own heading and one
+      complete idea, while an 800-char window cuts mid-table and mid-code-block. The difference
+      showed hardest in the answers: on the security question, <code>bychars</code> handed the model
+      four table fragments and the model padded the gaps by <em>inventing</em> AES-128 encryption,
+      AWS Shield and FIFO queues — none of which the document mentions — while
+      <code>bysections</code> stayed on what the document actually says (JWT validated against
+      Keycloak's JWKS, <code>NodeValidator</code> permissions, Vault for secrets). The price of
+      sections is size: 2.1–2.5k prompt tokens per turn versus 1.1–1.7k for chars.
+    </p>
+
+    <h2>3 — The threshold band</h2>
+    <p>
+      Against the <code>bysections</code> collection, real questions peaked at
+      <strong>0.675</strong> and <strong>0.608</strong>, while off-topic ones did <em>not</em> score
+      near zero: a paella recipe reached <strong>0.505</strong> and a question about back-pain
+      exercises reached <strong>0.552</strong> — the second one quietly breaking a threshold of 0.55
+      that the first had made look safe.
+    </p>
+    <pre class="band">real      errores    0.675 0.595 0.585 0.578      sesiones BD    0.608 0.566 0.563 0.561
+off-topic paella     0.505 0.490 0.477 0.470      dolor espalda  0.552 0.546 0.545 0.545
+
+band found: threshold ≈ 0.57  (blocks both off-topic: every row ✗ below threshold;
+both real questions still retrieve)   ·   at &gt;0.608 the sessions question starves too</pre>
+    <p class="note">
+      <strong>Why this number cannot be hard-coded:</strong> the band belongs to this embeddings model,
+      this document and this language — my whole corpus lives in a 0.50–0.68 strip, so 0.57 separates
+      on-topic from off-topic here, but a different model, corpus or phrasing shifts the strip, and my
+      own second off-topic question already moved the ceiling from 0.505 to 0.552. A threshold is a
+      calibration against <em>your</em> data, not a constant — and it will not catch everything, which
+      is why the grounded system prompt stays as the second line of defense.
+    </p>
+  </body>
+</html>

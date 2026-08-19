@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>W2-Ex2 — Embeddings Explorer</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      /* The task-1 table is 100 columns of monospace; at half the page width
+         nothing in it would be readable in print. */
+      .wide {
+        margin: 0 0 4px;
+      }
+
+      .wide img {
+        width: 72%;
+        margin: 0 auto;
+      }
+
+      .wide figcaption {
+        text-align: center;
+      }
+
+      .pair {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 9px;
+        align-items: start;
+      }
+
+      .maths {
+        margin: 4px 0 0;
+        padding: 5px 8px;
+        background: #f6f7f9;
+        border: 1px solid #dfe3e8;
+        border-radius: 4px;
+        font-family: "Cascadia Mono", Consolas, ui-monospace, monospace;
+        font-size: 7.8pt;
+        line-height: 1.5;
+      }
+
+      td.q {
+        font-style: italic;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="who">
+      <span class="name">__FULL_NAME__</span>
+      <span class="meta">Worked alone</span>
+    </div>
+
+    <h1>W2-Ex2 — Playing with the Embeddings Explorer</h1>
+    <p class="lede">
+      Demo <code>week-02/demos/03-embeddings-explorer</code>, running
+      <code>nomic-embed-text</code> on local Ollama. Every sentence comes back as
+      768 numbers with <code>norm = 1.0000</code> — a point on the unit sphere.
+      “Similar” then just means “near”, and you can put a number on it.
+    </p>
+
+    <h2>1 — Meaning, not words</h2>
+    <figure class="wide">
+      __SHOT_SEED__
+      <figcaption>
+        After <code>/seed</code>, the query <em>“how quick is the warehouse
+        robot?”</em> compared against the four seeded sentences.
+      </figcaption>
+    </figure>
+    <p>
+      The winner at <strong>0.865</strong> is <em>“The warehouse robot's top
+      speed is 2.4 metres per second.”</em> — and the only words the two share
+      are <em>the</em>, <em>warehouse</em> and <em>robot</em>. It does not
+      contain “quick”, and my query does not contain “speed” or “fast”. The cake
+      recipe falls to the bottom at <strong>0.331</strong>, below even the Acme
+      Robotics line, which is about robots but not about speed. The ranking is
+      tracking what the sentence is <em>about</em>, not which words it reuses.
+      <strong>This is the case that matched what I expected.</strong>
+    </p>
+
+    <h2>2 — Two names, one geometry</h2>
+    <p>
+      <strong>Because the model returns unit-length vectors, the two measures are
+      not independent: they are locked together by
+      <code>distance² = 2·(1 − cosine)</code>, so the distance is a strictly
+      decreasing function of the cosine and whichever sentence has the highest
+      cosine must have the lowest distance.</strong>
+      There is only one quantity here — the angle between the two points. Cosine
+      reports it directly; Euclidean distance reports the length of the chord
+      that the angle subtends. Checking the identity against the numbers the demo
+      printed:
+    </p>
+    <pre class="maths">cos 0.865 → √(2·(1−0.865)) = 0.520 ≈ 0.519 shown
+cos 0.331 → √(2·(1−0.331)) = 1.157 ≈ 1.156 shown
+cos 0.955 → √(2·(1−0.955)) = 0.300 =  0.300 shown</pre>
+
+    <h2>3 — Trying to fool it</h2>
+    <div class="pair">
+      <figure>
+        __SHOT_NEGATION__
+        <figcaption>
+          <strong>The surprise.</strong> <em>“The robot is not fast.”</em> against
+          <em>“The robot is fast.”</em> — cosine <strong>0.955</strong>, distance
+          0.300.
+        </figcaption>
+      </figure>
+      <figure>
+        __SHOT_LANGUAGE__
+        <figcaption>
+          <strong>The second surprise.</strong> One meaning in three languages.
+          Catalan and Spanish sit at <strong>0.776</strong>; the English version
+          of the same sentence sits at <strong>0.473</strong>, barely above an
+          unrelated cake recipe at 0.405.
+        </figcaption>
+      </figure>
+    </div>
+
+    <p class="note">
+      <strong>The negation was the case that surprised me.</strong> Adding the
+      single word <em>not</em> reverses the truth of the sentence and moves the
+      point almost nowhere — 0.955 is nearer than any genuine paraphrase I
+      produced in task 1. That tells me an embedding captures
+      <strong>topic</strong> — what a sentence is about, which words it lives
+      among — and largely ignores <strong>polarity</strong>: “near” means “about
+      the same thing”, not “says the same thing”. The language test points the
+      same way. <em>“Me gusta mucho esta pelicula”</em> lands 0.776 from its
+      Catalan twin but only 0.473 from its English translation — a gap of 0.303
+      for a sentence that means exactly the same thing — while an unrelated cake
+      recipe sits at 0.405, just 0.068 further out than the translation. So the
+      vector encodes which language the sentence is written in nearly as strongly
+      as what it says; <code>nomic-embed-text</code> was trained mostly on
+      English, and it shows. For RAG the consequence is direct — a manual saying
+      <em>“the warranty does not cover water damage”</em> is exactly what gets
+      retrieved for <em>“is water damage covered?”</em>, and the retriever cannot
+      tell me which of the two it found. Retrieval finds the right paragraph; it
+      does not read it.
+    </p>
+  </body>
+</html>

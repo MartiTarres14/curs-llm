@@ -1,0 +1,10 @@
+fastapi==0.140.13
+uvicorn[standard]==0.52.0
+openai==2.50.0
+python-dotenv==1.2.2
+python-multipart==0.0.32
+markitdown[pdf,docx,pptx]==0.1.6
+
+# The course's embeddings-database utility, vendored as a path dependency —
+# the app talks to this abstraction layer, never to ChromaDB directly.
+-e ./collections-manager

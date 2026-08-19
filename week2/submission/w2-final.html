@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>W2-Final — EASY-RAG</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      .flow {
+        margin: 4px 0 6px;
+        padding: 6px 9px;
+        background: #f6f7f9;
+        border: 1px solid #dfe3e8;
+        border-radius: 4px;
+        font-family: "Cascadia Mono", Consolas, ui-monospace, monospace;
+        font-size: 7.6pt;
+        line-height: 1.45;
+      }
+
+      .knobs td,
+      .knobs th {
+        padding: 2px 6px;
+      }
+
+      .shot img {
+        border: 1px solid #dfe3e8;
+        border-radius: 4px;
+      }
+
+      .shot figcaption {
+        margin-top: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="who">
+      <span class="name">__FULL_NAME__</span>
+      <span class="meta">
+        Worked alone · <a href="__REPO_URL__">__REPO_URL__</a> ·
+        app at <code>week2/easy-rag/</code>
+      </span>
+    </div>
+
+    <h1>W2-Final — EASY-RAG</h1>
+    <p class="lede">
+      Exercise 1's EASY-ASSISTANT grown into a real RAG app: FastAPI backend, plain-JS frontend,
+      documents ingested into a per-assistant collection through the course's
+      <code>collections-manager</code> (vendored as a path dependency — the app never talks to
+      ChromaDB directly), answers grounded in retrieved chunks with visible provenance.
+      Models: <code>qwen3:1.7b</code> answers (run locally as <code>qwen3-fast</code> — the same
+      weights pinned to 6 CPU threads), <code>nomic-embed-text</code> embeds, both on local Ollama.
+    </p>
+
+    <h2>How ingestion and retrieval flow</h2>
+    <pre class="flow">UPLOAD  file ──markitdown──► markdown ──chunk (sections | chars fallback)──► embed ──► assistant's collection
+             ├─► data/static/&lt;assistant&gt;/&lt;doc&gt;/original        (linked from every answer)
+             └─► data/static/&lt;assistant&gt;/&lt;doc&gt;/original.ext.md  (the distillation the chunks came from)
+             every chunk carries: source doc, chunk number, title, doc/md URLs, strategy, ingestion date
+
+CHAT    question ──embed──► query collection ──► top-K chunks with similarity ──► gate: similarity ≥ threshold?
+             ├─ some pass ──► format with provenance ──► fill {context}/{user_input} ──► LLM ──► answer + sources + usage
+             └─ none pass ──► honest refusal, generated locally — the LLM is never called (usage stays empty)</pre>
+
+    <h2>The three knobs, and why</h2>
+    <table class="knobs">
+      <thead><tr><th>knob</th><th>value</th><th>why</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>chunking</strong></td>
+          <td><code>sections</code> (level 2), falling back to <code>chars</code> 800/100</td>
+          <td>In exercise 3 I ingested the same document both ways: section chunks carry their own
+              heading and one complete idea, retrieved the exact right section every time (0.675 vs
+              0.623 on the same question) and kept the model from inventing facts out of window
+              fragments — the fallback covers documents that convert without headings.</td>
+        </tr>
+        <tr>
+          <td><strong>K</strong></td>
+          <td><code>4</code></td>
+          <td>Enough for an answer that spans a couple of sections, while keeping the prompt small
+              for a 1.7B model — with section-sized chunks, K=4 already means ~2k prompt tokens.</td>
+        </tr>
+        <tr>
+          <td><strong>threshold</strong></td>
+          <td><code>0.57</code></td>
+          <td>Calibrated in exercise 3 against nomic-embed-text and my documents: off-topic
+              questions peaked at 0.552 (not near zero!) and real questions started at 0.608, so
+              0.57 sits inside the narrow band that blocks noise without starving real answers.</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>
+      All three are <code>.env</code> configuration, not constants — the threshold in particular is
+      a calibration that belongs to this embeddings model and corpus, not a universal number.
+    </p>
+
+    <h2>Grounded answer, with its provenance</h2>
+    <figure class="shot">
+      __SHOT_PROVENANCE__
+      <figcaption>
+        Four documents in one assistant (56 chunks: a microservice architecture guide, a design
+        system, a robotics fact sheet, and a PDF ingested through the <code>chars</code> fallback).
+        <em>“How fast is the delivery robot?”</em> retrieves chunks
+        only from the right document; the chips under the answer link to the original under
+        <code>/static</code>, and the panel shows each chunk's similarity and whether it passed the
+        gate (✓ injected, ✗ dropped at 0.536 &lt; 0.57).
+      </figcaption>
+    </figure>
+
+    <h2>Honest refusal</h2>
+    <figure class="shot">
+      __SHOT_REFUSAL__
+      <figcaption>
+        <em>“What is the recipe for paella valenciana?”</em> — the best chunk reaches only 0.514,
+        every row shows ✗, nothing is injected, and the assistant refuses. The Tokens panel stays
+        empty: no request went upstream, which is what makes the refusal honest.
+      </figcaption>
+    </figure>
+
+    <h2>prompt_tokens, compared with exercise 1</h2>
+    <p>
+      In exercise 1 my <code>prompt_tokens</code> went <strong>968 → 1,007</strong> turn over turn
+      with a single 3,193-character document — the whole file rode along every time, so the prompt
+      could only grow with the knowledge. EASY-RAG holds a <strong>104,000-character corpus</strong>
+      (4 documents, 56 chunks) and the same questions cost <strong>372–827</strong> prompt tokens —
+      and when the corpus grew from 3 documents to 4, those numbers did not move by a single token,
+      because only the retrieved chunks travel: <strong>the prompt scales with the question, not
+      with the corpus</strong> — a corpus ~32× larger than exercise 1's document produced prompts
+      of the same size or smaller, and that is the reason this week existed.
+    </p>
+  </body>
+</html>

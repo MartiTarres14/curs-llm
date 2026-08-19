@@ -1,0 +1,64 @@
+TORTUGA ROBOTICS — COMPANY FACT SHEET
+Internal document, revision 7. Last updated 12 March 2026.
+
+ABOUT
+Tortuga Robotics builds slow, careful warehouse robots. The company was founded
+in Manresa, Catalonia, in November 2019 by Núria Balaguer and Ivan Prohaska,
+after both left a larger automation firm over a disagreement about safety
+margins. The name comes from the founders' rule: a robot that shares a floor
+with people should never move faster than a person can walk away from it.
+
+The company has 84 employees. 61 work in Manresa, 18 in a software office in
+Porto, and 5 in a small sales team in Rotterdam. Núria Balaguer is the CEO.
+Ivan Prohaska is the CTO. The head of manufacturing is Aina Ferrer-Solé.
+
+PRODUCTS
+The TR-100 "Galápago" is the flagship. It is a floor transport robot that
+carries up to 240 kg at a maximum speed of 1.1 metres per second. Its battery
+lasts 9 hours under a typical duty cycle and charges to 80% in 35 minutes. The
+TR-100 costs 41,500 euros per unit, before the service contract.
+
+The TR-40 "Cria" is the smaller model, introduced in 2023. It carries up to
+60 kg, tops out at 1.4 metres per second, and costs 17,900 euros. It is meant
+for pharmacies, hospitals, and other places where the loads are light but the
+corridors are narrow.
+
+Both robots run the same control software, called Caparazón. Customers do not
+pay for Caparazón separately; it is included, and updates are free for the
+lifetime of the machine. Tortuga has never sold a robot without a support
+contract, which costs 8% of the purchase price per year.
+
+MANUFACTURING
+Assembly happens in Manresa. The chassis is machined in Vic by a supplier
+called Metal·lúrgica Riera. Battery cells come from South Korea. The company
+holds roughly eleven weeks of inventory, deliberately more than the industry
+norm of four, because a 2021 shortage stopped the line for two months and the
+founders decided never to repeat it.
+
+Tortuga assembled 1,340 robots in 2025: 890 TR-100 units and 450 TR-40 units.
+The target for 2026 is 2,000 units.
+
+CUSTOMERS
+The largest customer is a Dutch grocery distributor that operates 210 TR-100
+units across four sites. The second largest is a hospital group in Lisbon with
+96 TR-40 units. No single customer accounts for more than 19% of revenue, a
+limit the board set in 2022.
+
+Revenue in 2025 was 58.4 million euros. The company has been profitable since
+2024 and has never raised venture capital; it is funded by the founders, a
+regional development bank, and retained earnings.
+
+SUPPORT POLICY
+A robot that fails under warranty is replaced within 48 hours anywhere in the
+European Union. Outside the EU, Tortuga does not sell directly and works only
+through three distributors: one in Chile, one in Morocco, and one in Japan.
+
+The warranty is three years, extendable to seven. It does not cover water
+damage, and it does not cover any robot whose safety limiter has been modified.
+Modifying the limiter voids the warranty immediately and permanently — this is
+the one rule the company will not negotiate on.
+
+CONTACT
+Support: soporte@tortuga-robotics.example
+Sales: ventas@tortuga-robotics.example
+Head office: Carrer del Bruc 14, Manresa. Phone +34 938 000 000.
