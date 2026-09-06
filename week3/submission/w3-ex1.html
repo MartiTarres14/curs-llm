@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>W3-Ex1 — The Straw House Emergency</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="who">
+      <span class="name">__FULL_NAME__</span>
+      <span class="meta">
+        Worked alone<br />
+        <a href="__REPO_URL__">__REPO_URL__</a>
+      </span>
+    </div>
+
+    <h1>W3-Ex1 — The Straw House Emergency</h1>
+    <p class="lede">
+      The assistant is now the youngest pig, in the straw house, with exactly
+      one tool: <code>call_elder_brother</code>. I rewrote the system prompt,
+      the tool's JSON definition and the Python function that answers the call
+      (code at <code>week3/straw-house/</code>, model
+      <code>gpt-4.1-mini</code> through the OpenAI API). I played the wolf:
+      <em>knock knock</em> first, the open threat second, then a knock on the
+      brick house.
+    </p>
+
+    <h2>The model calls his brother — but only when the threat is real</h2>
+    <div class="shots">
+      <figure>
+        __SHOT_CALL__
+        <figcaption>
+          <strong>The call.</strong> After the wolf's threat,
+          <code>finish_reason</code> is <code>"tool_calls"</code> and the
+          arguments — <code>urgency: "emergency"</code> and the message to the
+          brother — are written by the model itself, in character. Below, the
+          program executes the function and the brother's reply enters the
+          conversation as a <code>tool</code> message: run to the brick house,
+          pick up the middle brother on the way.
+        </figcaption>
+      </figure>
+      <figure>
+        __SHOT_MOCK__
+        <figcaption>
+          <strong>The mockery.</strong> The wolf knocks on the brick house.
+          Three pigs inside, <code>tool_calls: null</code> — nobody left to
+          call, nothing to fear: <em>“Your huffing and puffing won't work here,
+          Big Bad Wolf! Ha ha ha!”</em>
+        </figcaption>
+      </figure>
+    </div>
+
+    <h2>The two questions</h2>
+    <p>
+      <strong>When did the model decide to call, and why not earlier?</strong>
+      At the second message, when the visitor identified himself as the wolf
+      and threatened to blow the house down — not at the plain
+      <em>knock knock</em>, because a knock alone is no emergency and both the
+      system prompt and the tool's <code>description</code> tell the model to
+      call only under a real threat.
+    </p>
+    <p>
+      <strong>Who executed the function — the model or the program?</strong>
+      The program: the API response carries only the function name and its
+      JSON arguments (<code>finish_reason: "tool_calls"</code>, visible in the
+      first screenshot), and it is my Python code that runs
+      <code>call_elder_brother()</code> and sends its result back to the model
+      as a <code>tool</code> message.
+    </p>
+
+    <p class="note">
+      <strong>The description really is what decides.</strong> With small local
+      models (qwen2.5:3b, llama3.2:3b via Ollama) the pig either never emitted a
+      real tool call or phoned his brother at the first innocent knock, whatever
+      the prompt said. Getting the <em>timing</em> right took an explicit
+      “never for a simple knock at the door” in the tool description plus
+      calling rules in the system prompt — and a model large enough to follow
+      them.
+    </p>
+  </body>
+</html>
