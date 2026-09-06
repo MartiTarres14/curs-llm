@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>W3-Ex2 — The Token Bill</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="who">
+      <span class="name">__FULL_NAME__</span>
+      <span class="meta">
+        Worked alone<br />
+        <a href="__REPO_URL__">__REPO_URL__</a>
+      </span>
+    </div>
+
+    <h1>W3-Ex2 — The Token Bill: Measure It, Then Feel It</h1>
+    <p class="lede">
+      Model: <code>gpt-4.1-mini</code>. Part 1 reads
+      <code>prompt_tokens</code> straight from the API; Part 2 routes both
+      agents through a LiteLLM proxy on <code>localhost:4000</code> and reads
+      the meter. Code at <code>week3/token-bill/</code>.
+    </p>
+
+    <h2>Part 1 — The registry tax</h2>
+    <div class="tokenrow">
+    <table>
+      <thead>
+        <tr><th>First LLM call of…</th><th>prompt_tokens</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Baseline — plain loop (its own 2 wired tools + system prompt)</td><td class="n">158</td></tr>
+        <tr><td>MCP server mounted and <strong>used</strong> (1 tool, Pallet Pup)</td><td class="n">81</td></tr>
+        <tr><td>MCP mounted, <strong>not used</strong> (1 tool, capital of France)</td><td class="n">77</td></tr>
+        <tr class="punch"><td>MCP mounted, <strong>not used</strong>, 6 tools (same question)</td><td class="n">438</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p>
+      <strong>Why does the unused server still cost tokens?</strong> Because the
+      registry — every tool's name, description and JSON schema — is serialized
+      into the context of <em>every</em> request so the model can decide whether
+      to call it, so it pays rent whether it is used or not: the same question
+      went from 77 to 438 prompt tokens (+72 per tool) just by mounting five
+      more tools. Ten servers like this (~4,400 tokens) in a fifty-turn chat is
+      ~220,000 tokens of pure registry.
+    </p>
+
+    <h2>Part 2 — Same task, two roads</h2>
+    <p>
+      The task: post a comment to the course forum on Àrtemis (the
+      <em>Agents playground forum</em>). Road one: the course's minimal CLI
+      agent plus a 190-token <code>moodle-forum</code> skill that shows one
+      <code>curl</code> call to the Moodle REST API. Road two: OpenCode driving
+      my own Brave browser through Playwright MCP (CDP), same proxy, same model.
+    </p>
+    <div class="tokenrow">
+    <table>
+      <thead>
+        <tr><th>Road</th><th>LLM calls</th><th>prompt</th><th>completion</th><th>total tokens</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>CLI — <a href="https://artemis.upc.edu/mod/forum/discuss.php?d=1568">“hello from my CLI agent” (d=1568)</a></td>
+          <td class="n">3</td><td class="n">1,674</td><td class="n">169</td><td class="n">1,843</td>
+        </tr>
+        <tr class="punch">
+          <td>Browser — <a href="https://artemis.upc.edu/mod/forum/discuss.php?d=1569">“hello from my browser agent” (d=1569)</a></td>
+          <td class="n">28</td><td class="n">362,164</td><td class="n">2,489</td><td class="n">364,653</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="note">
+      <strong>Ratio: ~198× more expensive through the browser.</strong>
+      The browser road is so costly because every single step — navigate, open
+      the forum, fight the TinyMCE editor, verify — returns a full accessibility
+      snapshot of the page that lands in the context, and the whole growing
+      conversation is re-sent on each of the 28 calls, while the CLI road did the
+      entire job with one <code>curl</code> the model already knew how to write.
+      The browser would still be the right choice for a task where no API or CLI
+      exists at all — for example operating a legacy web application (or checking
+      that a page actually <em>renders</em> correctly for a human), where the web
+      UI is the only interface there is.
+    </p>
+  </body>
+</html>

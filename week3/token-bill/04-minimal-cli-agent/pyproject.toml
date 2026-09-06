@@ -1,0 +1,10 @@
+[project]
+name = "minimal-cli-agent"
+version = "0.1.0"
+description = "A minimal CLI agent: memory in files, skills on demand, a y-gated shell for hands"
+license = "CC-BY-NC-SA-4.0"
+requires-python = ">=3.10"
+dependencies = [
+    "openai>=1.0.0",
+    "python-dotenv>=1.0.0",
+]

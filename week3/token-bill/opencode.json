@@ -1,0 +1,30 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "litellm": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "LiteLLM proxy (token meter)",
+      "options": {
+        "baseURL": "http://localhost:4000/v1",
+        "apiKey": "sk-1234"
+      },
+      "models": {
+        "openai/gpt-4.1-mini": {
+          "name": "gpt-4.1-mini via LiteLLM"
+        }
+      }
+    }
+  },
+  "model": "litellm/openai/gpt-4.1-mini",
+  "mcp": {
+    "playwright": {
+      "type": "local",
+      "command": [
+        "/mnt/c/Windows/System32/cmd.exe",
+        "/c",
+        "npx -y @playwright/mcp@latest --cdp-endpoint http://127.0.0.1:9222"
+      ],
+      "enabled": true
+    }
+  }
+}

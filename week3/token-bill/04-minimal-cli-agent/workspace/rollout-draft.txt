@@ -1,0 +1,3 @@
+Widget rollout draft
+
+The rollout has three phases: pilot with ten customers, regional launch, and general availability before December.

@@ -1,0 +1,10 @@
+[project]
+name = "mcp-server-minimal"
+version = "0.1.0"
+description = "A minimal MCP server (one tool, one resource) + the agent loop that calls it"
+license = "CC-BY-NC-SA-4.0"
+requires-python = ">=3.10"
+dependencies = [
+    "openai>=1.0.0",
+    "mcp>=1.14,<1.15",
+]

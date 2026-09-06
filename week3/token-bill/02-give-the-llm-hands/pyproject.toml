@@ -1,0 +1,10 @@
+[project]
+name = "give-the-llm-hands"
+version = "0.1.0"
+description = "A loop with tools: the model decides the steps, the program executes them (wget + execute_sql)"
+license = "CC-BY-NC-SA-4.0"
+requires-python = ">=3.10"
+dependencies = [
+    "openai>=1.0.0",
+    "python-dotenv>=1.0.0",
+]
